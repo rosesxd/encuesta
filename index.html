@@ -2,756 +2,593 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#071b33">
   <title>Encuesta de Viaje</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --sky-top: #bae6fd;
-      --sky-mid: #e0f2fe;
-      --sky-bottom: #f8fafc;
-      --card: rgba(255, 255, 255, 0.86);
-      --border: rgba(255, 255, 255, 0.9);
-      --primary: #0284c7;
-      --primary-light: #38bdf8;
-      --primary-soft: rgba(2, 132, 199, 0.12);
-      --primary-glow: rgba(2, 132, 199, 0.25);
-      --text: #0f172a;
-      --muted: #475569;
-      --input-bg: rgba(255, 255, 255, 0.95);
+      --navy: #071b33;
+      --navy-2: #0e3766;
+      --sky: #0ea5e9;
+      --sky-dark: #0369a1;
+      --gold: #e2b659;
+      --gold-soft: #f6e7bd;
+      --bg: #f3f7fc;
+      --card: #ffffff;
+      --line: #e3eaf3;
+      --text: #0b1b30;
+      --muted: #5b6b80;
+      --danger: #dc2626;
+      --ok: #16a34a;
+      --shadow: 0 1px 2px rgba(7,27,51,.05), 0 12px 32px -8px rgba(7,27,51,.14);
+      --serif: "Fraunces", Georgia, "Times New Roman", serif;
+      --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html { scroll-behavior: smooth; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 45%, var(--sky-bottom) 100%);
+      font-family: var(--sans);
       color: var(--text);
+      background: var(--bg);
       min-height: 100vh;
-      padding: 16px;
+      min-height: 100dvh;
+      padding: 14px 14px calc(24px + env(safe-area-inset-bottom));
       display: flex;
       justify-content: center;
-      align-items: flex-start;
       overflow-x: hidden;
-      position: relative;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* Fondo animado luminoso de cielo, nubes y aviones */
-    .sky-bg {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-      overflow: hidden;
+    /* ---------- Fondo aurora + aviones ---------- */
+    .bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .55; will-change: transform; }
+    .orb.o1 { width: 340px; height: 340px; background: #7dd3fc; top: -90px; left: -90px; animation: drift1 18s ease-in-out infinite alternate; }
+    .orb.o2 { width: 300px; height: 300px; background: var(--gold-soft); bottom: 8%; right: -110px; animation: drift2 22s ease-in-out infinite alternate; }
+    .orb.o3 { width: 260px; height: 260px; background: #c7d2fe; top: 45%; left: -120px; opacity: .4; animation: drift1 26s ease-in-out infinite alternate-reverse; }
+    @keyframes drift1 { to { transform: translate(60px, 50px) scale(1.12); } }
+    @keyframes drift2 { to { transform: translate(-50px, -60px) scale(1.1); } }
+
+    .plane { position: absolute; left: -160px; display: flex; align-items: center; gap: 6px; font-size: 20px; opacity: 0; will-change: transform; }
+    .plane i { width: 90px; height: 2px; background: linear-gradient(90deg, transparent, rgba(14,165,233,.5)); border-radius: 9px; }
+    .plane.p1 { top: 20%; animation: fly 20s linear infinite; }
+    .plane.p2 { top: 68%; font-size: 16px; animation: fly 28s linear infinite -12s; }
+    @keyframes fly {
+      0% { transform: translate(0,0) rotate(-6deg); opacity: 0; }
+      8%, 90% { opacity: .85; }
+      100% { transform: translate(calc(100vw + 260px), -60px) rotate(-6deg); opacity: 0; }
     }
 
-    /* Destello solar suave arriba a la derecha */
-    .sun-glow {
-      position: absolute;
-      top: -80px;
-      right: -80px;
-      width: 280px;
-      height: 280px;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(254, 240, 138, 0.35) 45%, transparent 70%);
-      border-radius: 50%;
-      animation: pulseSun 6s ease-in-out infinite alternate;
+    /* ---------- Contenedor ---------- */
+    .app { position: relative; z-index: 1; width: 100%; max-width: 480px; }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      position: relative; overflow: hidden; border-radius: 28px; padding: 26px 22px 22px; margin-bottom: 14px; color: #fff;
+      background:
+        radial-gradient(120% 90% at 100% 0%, rgba(14,165,233,.35), transparent 55%),
+        radial-gradient(80% 70% at 0% 100%, rgba(226,182,89,.18), transparent 60%),
+        linear-gradient(155deg, var(--navy) 0%, var(--navy-2) 100%);
+      box-shadow: 0 24px 50px -18px rgba(7,27,51,.55);
+      animation: rise .7s cubic-bezier(.22,1,.36,1) both;
     }
-
-    @keyframes pulseSun {
-      from { transform: scale(1); opacity: 0.85; }
-      to { transform: scale(1.12); opacity: 1; }
+    .hero::before { /* línea dorada */
+      content: ""; position: absolute; left: 22px; right: 22px; top: 0; height: 3px; border-radius: 0 0 6px 6px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
     }
-
-    /* Nubes esponjosas animadas */
-    .cloud {
-      position: absolute;
-      background: rgba(255, 255, 255, 0.75);
-      border-radius: 999px;
-      box-shadow: 0 8px 20px rgba(14, 165, 233, 0.08);
-      animation: driftCloud linear infinite;
+    .hero::after { /* destello */
+      content: ""; position: absolute; width: 220px; height: 220px; right: -70px; top: -90px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,.16), transparent 65%);
     }
-
-    .cloud::before,
-    .cloud::after {
-      content: '';
-      position: absolute;
-      background: rgba(255, 255, 255, 0.85);
-      border-radius: 50%;
+    .brand { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
+    .logo {
+      width: 62px; height: 62px; flex: none; padding: 8px; object-fit: contain; border-radius: 18px;
+      background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.22);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 8px 20px rgba(0,0,0,.25);
     }
+    .eyebrow { font-size: 10.5px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+    .hero h1 { font-family: var(--serif); font-weight: 700; font-size: 25px; line-height: 1.12; letter-spacing: -.3px; }
+    .hero p { position: relative; z-index: 1; margin-top: 14px; font-size: 13.5px; line-height: 1.5; color: rgba(255,255,255,.76); }
 
-    .cloud.c1 { width: 150px; height: 42px; top: 10%; left: -180px; animation-duration: 34s; }
-    .cloud.c1::before { width: 65px; height: 65px; top: -30px; left: 22px; }
-    .cloud.c1::after { width: 50px; height: 50px; top: -20px; left: 72px; }
-
-    .cloud.c2 { width: 200px; height: 50px; top: 44%; left: -230px; animation-duration: 46s; animation-delay: -16s; opacity: 0.7; }
-    .cloud.c2::before { width: 85px; height: 85px; top: -38px; left: 30px; }
-    .cloud.c2::after { width: 65px; height: 65px; top: -25px; left: 95px; }
-
-    .cloud.c3 { width: 130px; height: 36px; top: 78%; left: -160px; animation-duration: 38s; animation-delay: -24s; opacity: 0.65; }
-    .cloud.c3::before { width: 55px; height: 55px; top: -24px; left: 20px; }
-    .cloud.c3::after { width: 42px; height: 42px; top: -16px; left: 62px; }
-
-    @keyframes driftCloud {
-      from { transform: translateX(0); }
-      to { transform: translateX(calc(100vw + 280px)); }
+    /* Stepper */
+    .stepper { position: relative; z-index: 1; display: flex; align-items: center; margin-top: 20px; }
+    .dot {
+      width: 28px; height: 28px; flex: none; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 800;
+      color: rgba(255,255,255,.55); border: 1.5px solid rgba(255,255,255,.28); background: rgba(255,255,255,.06); transition: all .35s;
     }
+    .dot.active { color: var(--navy); background: var(--gold); border-color: var(--gold); box-shadow: 0 0 0 5px rgba(226,182,89,.22); }
+    .dot.done { color: #fff; background: rgba(74,222,128,.9); border-color: transparent; }
+    .bar { flex: 1; height: 2px; background: rgba(255,255,255,.2); margin: 0 6px; border-radius: 9px; overflow: hidden; }
+    .bar b { display: block; height: 100%; width: 0; background: var(--gold); transition: width .5s cubic-bezier(.22,1,.36,1); }
+    .step-name { position: relative; z-index: 1; margin-top: 12px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,.8); display: flex; justify-content: space-between; }
 
-    /* Aviones con estela blanca */
-    .plane {
-      position: absolute;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 24px;
-      filter: drop-shadow(0 6px 10px rgba(2, 132, 199, 0.22));
+    /* ---------- Tarjeta de pasos ---------- */
+    .panel {
+      background: var(--card); border: 1px solid var(--line); border-radius: 28px; padding: 24px 20px 20px;
+      box-shadow: var(--shadow); animation: rise .7s .08s cubic-bezier(.22,1,.36,1) both;
     }
+    @keyframes rise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
 
-    .plane .trail {
-      width: 85px;
-      height: 3px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95));
-      border-radius: 99px;
+    .step { display: none; }
+    .step.active { display: block; animation: slideIn .45s cubic-bezier(.22,1,.36,1) both; }
+    .step.back.active { animation-name: slideBack; }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(26px); } to { opacity: 1; transform: none; } }
+    @keyframes slideBack { from { opacity: 0; transform: translateX(-26px); } to { opacity: 1; transform: none; } }
+
+    .step-title { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+    .step-ico {
+      width: 44px; height: 44px; flex: none; border-radius: 14px; display: grid; place-items: center; font-size: 21px;
+      background: linear-gradient(145deg, #e0f2fe, #f0f9ff); border: 1px solid #bae6fd;
     }
+    .step-title h2 { font-family: var(--serif); font-size: 20px; font-weight: 700; letter-spacing: -.2px; }
+    .step-title small { display: block; margin-top: 2px; font-family: var(--sans); font-size: 12.5px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
 
-    .plane.p1 {
-      top: 16%;
-      left: -150px;
-      animation: flyAcross1 15s linear infinite;
+    .field { margin-bottom: 22px; padding: 2px; border-radius: 16px; transition: box-shadow .25s, background .25s; }
+    .field:last-of-type { margin-bottom: 8px; }
+    .field.invalid { background: rgba(220,38,38,.05); box-shadow: 0 0 0 2px rgba(220,38,38,.35); animation: shake .4s; }
+    @keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+    .q { display: block; font-size: 13.5px; font-weight: 700; color: #1b2c44; margin-bottom: 10px; line-height: 1.35; }
+    .req { color: var(--danger); } .opt { color: #98a6b8; font-weight: 500; font-size: 12px; }
+
+    input[type="text"], select, textarea {
+      width: 100%; background: #f8fafd; border: 1.5px solid var(--line); border-radius: 16px; padding: 15px 16px;
+      font: 500 16px var(--sans); color: var(--text); transition: all .2s;
     }
-
-    .plane.p2 {
-      top: 52%;
-      left: -150px;
-      font-size: 19px;
-      animation: flyAcross2 21s linear infinite;
-      animation-delay: -8s;
+    textarea { resize: vertical; min-height: 110px; line-height: 1.5; }
+    input::placeholder, textarea::placeholder { color: #9aa8ba; }
+    input[type="text"]:focus, select:focus, textarea:focus { outline: none; background: #fff; border-color: var(--sky); box-shadow: 0 0 0 4px rgba(14,165,233,.16); }
+    select {
+      appearance: none; -webkit-appearance: none; cursor: pointer; padding-right: 44px;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230369a1' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+      background-repeat: no-repeat; background-position: right 16px center;
     }
+    .count { text-align: right; font-size: 11px; color: #98a6b8; margin-top: 5px; }
 
-    .plane.p3 {
-      top: 82%;
-      left: -150px;
-      font-size: 22px;
-      animation: flyAcross3 18s linear infinite;
-      animation-delay: -13s;
+    fieldset { border: 0; min-width: 0; }
+    legend.q { padding: 0; float: left; width: 100%; }
+    legend.q + * { clear: both; }
+
+    /* ---------- Calificación ---------- */
+    .rating { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .opt-box { position: relative; }
+    .opt-box input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 1; margin: 0; }
+    .r-btn {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; height: 74px;
+      background: #f8fafd; border: 1.5px solid var(--line); border-radius: 18px; transition: all .25s cubic-bezier(.34,1.56,.64,1);
     }
+    .r-btn .e { font-size: 26px; filter: grayscale(.8) opacity(.75); transition: all .25s cubic-bezier(.34,1.56,.64,1); }
+    .r-btn .n { font-size: 11px; font-weight: 800; color: #8393a8; }
+    .opt-box:hover .r-btn { transform: translateY(-2px); border-color: #bcd3ea; background: #fff; }
+    .opt-box input:active + .r-btn { transform: scale(.93); }
+    .opt-box input:checked + .r-btn { transform: translateY(-5px); background: #fff; border-color: var(--c); box-shadow: 0 12px 22px -8px var(--c), 0 0 0 3px color-mix(in srgb, var(--c) 18%, transparent); }
+    .opt-box input:checked + .r-btn .e { filter: none; transform: scale(1.25) rotate(-6deg); }
+    .opt-box input:checked + .r-btn .n { color: var(--c); }
+    .opt-box[data-n="1"] { --c: #ef4444; } .opt-box[data-n="2"] { --c: #f97316; } .opt-box[data-n="3"] { --c: #eab308; }
+    .opt-box[data-n="4"] { --c: #22c55e; } .opt-box[data-n="5"] { --c: #0ea5e9; }
+    .opt-box input:focus-visible + .r-btn, .pill input:focus-visible + .p-btn { outline: 3px solid var(--sky); outline-offset: 2px; }
 
-    @keyframes flyAcross1 {
-      0% { transform: translate(0, 0) rotate(-6deg); opacity: 0; }
-      10% { opacity: 1; }
-      90% { opacity: 1; }
-      100% { transform: translate(calc(100vw + 220px), -50px) rotate(-6deg); opacity: 0; }
+    .r-text { margin-top: 12px; min-height: 22px; text-align: center; font-size: 13.5px; font-weight: 700; color: var(--sky-dark); }
+    .r-text.hint { font-weight: 500; font-size: 12px; color: #98a6b8; }
+    .r-text.low { color: #ea580c; }
+
+    /* ---------- Pastillas ---------- */
+    .pills { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .pill { position: relative; }
+    .pill input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 1; margin: 0; }
+    .p-btn {
+      display: flex; align-items: center; justify-content: center; min-height: 50px; padding: 8px 4px; text-align: center;
+      font-size: 13.5px; font-weight: 700; color: var(--muted); background: #f8fafd; border: 1.5px solid var(--line); border-radius: 16px;
+      transition: all .25s cubic-bezier(.34,1.56,.64,1);
     }
+    .pill:hover .p-btn { border-color: #bcd3ea; background: #fff; }
+    .pill input:checked + .p-btn { color: #fff; background: linear-gradient(135deg, var(--sky), var(--sky-dark)); border-color: transparent; transform: translateY(-2px); box-shadow: 0 10px 20px -8px rgba(3,105,161,.7); }
 
-    @keyframes flyAcross2 {
-      0% { transform: translate(0, 0) rotate(-4deg); opacity: 0; }
-      10% { opacity: 0.9; }
-      90% { opacity: 0.9; }
-      100% { transform: translate(calc(100vw + 220px), -30px) rotate(-4deg); opacity: 0; }
+    /* ---------- Navegación ---------- */
+    .err { display: none; margin: 4px 0 14px; padding: 11px 14px; border-radius: 14px; font-size: 13px; font-weight: 600; text-align: center; color: var(--danger); background: #fef2f2; border: 1px solid #fecaca; }
+    .nav { display: flex; gap: 10px; margin-top: 18px; }
+    .btn {
+      height: 54px; border: 0; border-radius: 18px; font: 700 15.5px var(--sans); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 9px;
+      transition: transform .18s, box-shadow .2s, opacity .2s;
     }
-
-    @keyframes flyAcross3 {
-      0% { transform: translate(0, 0) rotate(-8deg); opacity: 0; }
-      10% { opacity: 0.95; }
-      90% { opacity: 0.95; }
-      100% { transform: translate(calc(100vw + 220px), -60px) rotate(-8deg); opacity: 0; }
+    .btn:active { transform: scale(.97); }
+    .btn:focus-visible { outline: 3px solid var(--sky); outline-offset: 3px; }
+    .btn.ghost { flex: 0 0 auto; padding: 0 20px; color: var(--muted); background: #f1f5fa; }
+    .btn.ghost[hidden] { display: none; }
+    .btn.primary {
+      flex: 1; color: #fff; position: relative; overflow: hidden;
+      background: linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%); box-shadow: 0 14px 26px -10px rgba(3,105,161,.75);
     }
-
-    /* Animaciones de entrada en cascada */
-    @keyframes fadeSlideUp {
-      from {
-        opacity: 0;
-        transform: translateY(22px) scale(0.98);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
+    .btn.primary::after {
+      content: ""; position: absolute; top: 0; left: -100%; width: 55%; height: 100%; transform: skewX(-20deg);
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent); animation: shine 3.8s infinite;
     }
+    @keyframes shine { 0% { left: -100%; } 45%, 100% { left: 160%; } }
+    .btn.primary.send { background: linear-gradient(135deg, #f0c76a 0%, #d99a1f 100%); color: #2b1d00; box-shadow: 0 14px 26px -10px rgba(217,154,31,.8); }
+    .btn:disabled { opacity: .7; cursor: not-allowed; }
+    .spin { display: none; width: 18px; height: 18px; border: 3px solid rgba(0,0,0,.2); border-top-color: currentColor; border-radius: 50%; animation: spin .7s linear infinite; }
+    .btn.loading .spin { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    @keyframes floatLogo {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-5px); }
+    .privacy { text-align: center; margin-top: 16px; font-size: 11.5px; color: var(--muted); }
+    .hp { position: absolute; left: -9999px; height: 0; overflow: hidden; opacity: 0; }
+
+    /* ---------- Éxito ---------- */
+    .done-screen { display: none; text-align: center; padding: 34px 22px 26px; }
+    .done-screen.show { display: block; animation: rise .6s cubic-bezier(.22,1,.36,1) both; }
+    .check { width: 92px; height: 92px; margin: 0 auto 20px; display: block; }
+    .check circle { stroke: var(--c, #16a34a); stroke-width: 4; fill: color-mix(in srgb, var(--c, #16a34a) 12%, white); stroke-dasharray: 260; stroke-dashoffset: 260; animation: draw .8s .1s ease forwards; }
+    .check path { stroke: var(--c, #16a34a); stroke-width: 6; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 60; stroke-dashoffset: 60; animation: draw .5s .7s ease forwards; }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+    .done-screen h2 { font-family: var(--serif); font-size: 26px; font-weight: 700; margin-bottom: 10px; letter-spacing: -.3px; }
+    .done-screen p { color: var(--muted); font-size: 15px; line-height: 1.55; }
+    .cta { display: none; margin-top: 24px; padding-top: 20px; border-top: 1px dashed var(--line); }
+    .cta p { font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 12px; }
+    .cta a { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 16px; border-radius: 18px; color: #fff; text-decoration: none; font-weight: 700; font-size: 15px; transition: transform .18s; }
+    .cta a:active { transform: scale(.97); }
+    .cta .wa { background: linear-gradient(135deg, #25d366, #128c4a); box-shadow: 0 14px 26px -10px rgba(18,140,74,.8); }
+    .cta .rv { background: linear-gradient(135deg, #f0c76a, #d99a1f); color: #2b1d00; box-shadow: 0 14px 26px -10px rgba(217,154,31,.8); }
+
+    .confetti { position: fixed; top: -24px; z-index: 30; pointer-events: none; animation: fall linear forwards; }
+    @keyframes fall { to { transform: translateY(112vh) rotate(540deg); } }
+
+    @media (max-width: 360px) {
+      .rating { gap: 5px; } .r-btn { height: 66px; } .r-btn .e { font-size: 22px; }
+      .hero h1 { font-size: 22px; }
     }
-
-    .app-container {
-      width: 100%;
-      max-width: 460px;
-      margin: 8px auto 38px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .header {
-      text-align: center;
-      margin-bottom: 18px;
-      padding: 8px 0;
-      animation: fadeSlideUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
-    }
-
-    .brand-box {
-      display: inline-flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .company-logo {
-      width: 88px;
-      height: 88px;
-      padding: 10px;
-      object-fit: contain;
-      border-radius: 24px;
-      border: 3px solid #ffffff;
-      box-shadow: 0 12px 28px rgba(2, 132, 199, 0.25);
-      background: linear-gradient(145deg, #071b33 0%, #0e3766 100%);
-      animation: floatLogo 3.8s ease-in-out infinite;
-    }
-
-    .badge {
-      display: inline-block;
-      background: rgba(255, 255, 255, 0.85);
-      color: var(--primary);
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 0.9px;
-      text-transform: uppercase;
-      padding: 5px 14px;
-      border-radius: 99px;
-      border: 1px solid rgba(2, 132, 199, 0.2);
-      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.08);
-    }
-
-    .header h1 {
-      font-size: 25px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-      color: var(--text);
-      margin-bottom: 6px;
-    }
-
-    .header p {
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.4;
-      padding: 0 10px;
-    }
-
-    .card {
-      background: var(--card);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border: 1.5px solid var(--border);
-      border-radius: 24px;
-      padding: 20px;
-      margin-bottom: 16px;
-      box-shadow: 0 12px 32px rgba(14, 116, 144, 0.1);
-      animation: fadeSlideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
-    }
-
-    .card:nth-of-type(1) { animation-delay: 0.08s; }
-    .card:nth-of-type(2) { animation-delay: 0.16s; }
-    .card:nth-of-type(3) { animation-delay: 0.24s; }
-    .card:nth-of-type(4) { animation-delay: 0.32s; }
-
-    .section-title {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 16px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid rgba(2, 132, 199, 0.12);
-    }
-
-    .section-icon {
-      background: var(--primary-soft);
-      width: 34px;
-      height: 34px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 17px;
-    }
-
-    .field {
-      margin-bottom: 18px;
-    }
-
-    .field:last-child {
-      margin-bottom: 0;
-    }
-
-    label.q-label {
-      display: block;
-      font-size: 14px;
-      font-weight: 600;
-      color: #1e293b;
-      margin-bottom: 8px;
-      line-height: 1.35;
-    }
-
-    input[type="text"],
-    textarea {
-      width: 100%;
-      background: var(--input-bg);
-      border: 1.5px solid #cbd5e1;
-      border-radius: 14px;
-      padding: 14px 16px;
-      color: var(--text);
-      font-size: 16px;
-      font-family: inherit;
-      transition: all 0.22s ease;
-    }
-
-    input[type="text"]::placeholder,
-    textarea::placeholder {
-      color: #94a3b8;
-    }
-
-    input[type="text"]:focus,
-    textarea:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 4px var(--primary-glow);
-      transform: translateY(-1px);
-    }
-
-    /* Botones táctiles de calificación con rebote */
-    .rating-group {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
-    }
-
-    .rating-option {
-      position: relative;
-    }
-
-    .rating-option input {
-      position: absolute;
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .rating-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: #ffffff;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 16px;
-      padding: 10px 4px;
-      cursor: pointer;
-      transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
-      user-select: none;
-      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
-    }
-
-    .rating-btn:active {
-      transform: scale(0.92);
-    }
-
-    .rating-btn .emoji {
-      font-size: 23px;
-      margin-bottom: 4px;
-      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    .rating-btn .num {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--muted);
-    }
-
-    .rating-option input:checked + .rating-btn {
-      background: #e0f2fe;
-      border-color: var(--primary);
-      transform: translateY(-4px) scale(1.04);
-      box-shadow: 0 8px 18px rgba(2, 132, 199, 0.22);
-    }
-
-    .rating-option input:checked + .rating-btn .emoji {
-      transform: scale(1.22) rotate(-6deg);
-    }
-
-    .rating-option input:checked + .rating-btn .num {
-      color: var(--primary);
-    }
-
-    .rating-hints {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--muted);
-      margin-top: 6px;
-      padding: 0 4px;
-    }
-
-    /* Botones Sí / No / Con retraso */
-    .pill-group {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-    }
-
-    .pill-option input {
-      position: absolute;
-      opacity: 0;
-    }
-
-    .pill-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      background: #ffffff;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 14px;
-      padding: 12px 6px;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--muted);
-      cursor: pointer;
-      transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
-      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
-    }
-
-    .pill-btn:active {
-      transform: scale(0.95);
-    }
-
-    .pill-option input:checked + .pill-btn {
-      background: #e0f2fe;
-      border-color: var(--primary);
-      color: var(--primary);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 14px rgba(2, 132, 199, 0.18);
-    }
-
-    /* Botón enviar con brillo animado */
-    .submit-btn {
-      width: 100%;
-      background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-      color: #ffffff;
-      font-size: 16px;
-      font-weight: 700;
-      border: none;
-      border-radius: 18px;
-      padding: 17px;
-      cursor: pointer;
-      box-shadow: 0 10px 25px rgba(2, 132, 199, 0.35);
-      transition: transform 0.18s ease, box-shadow 0.2s ease;
-      margin-top: 6px;
-      position: relative;
-      overflow: hidden;
-      animation: fadeSlideUp 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.38s both;
-    }
-
-    .submit-btn::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 60%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
-      transform: skewX(-20deg);
-      animation: shineBtn 3.5s infinite;
-    }
-
-    @keyframes shineBtn {
-      0% { left: -100%; }
-      45%, 100% { left: 160%; }
-    }
-
-    .submit-btn:active {
-      transform: scale(0.97);
-    }
-
-    .submit-btn:disabled {
-      opacity: 0.65;
-      cursor: not-allowed;
-    }
-
-    /* Pantalla de confirmación */
-    .success-screen {
-      display: none;
-      text-align: center;
-      padding: 40px 24px;
-      animation: fadeSlideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
-    }
-
-    .success-icon {
-      width: 76px;
-      height: 76px;
-      background: #dcfce7;
-      color: #16a34a;
-      border: 2px solid #86efac;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 36px;
-      margin: 0 auto 18px;
-      animation: popCheck 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-    }
-
-    @keyframes popCheck {
-      from { transform: scale(0.4); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-
-    .success-screen h2 {
-      font-size: 23px;
-      font-weight: 800;
-      margin-bottom: 10px;
-      color: var(--text);
-    }
-
-    .success-screen p {
-      color: var(--muted);
-      font-size: 15px;
-      line-height: 1.5;
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+      .plane, .confetti { display: none; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Fondo claro animado: sol, nubes y aviones con estela -->
-  <div class="sky-bg" aria-hidden="true">
-    <div class="sun-glow"></div>
-
-    <div class="cloud c1"></div>
-    <div class="cloud c2"></div>
-    <div class="cloud c3"></div>
-
-    <div class="plane p1">
-      <span class="trail"></span>
-      <span>✈️</span>
-    </div>
-    <div class="plane p2">
-      <span class="trail"></span>
-      <span>✈️</span>
-    </div>
-    <div class="plane p3">
-      <span class="trail"></span>
-      <span>✈️</span>
-    </div>
+  <div class="bg" aria-hidden="true">
+    <div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
+    <div class="plane p1"><i></i><span>✈️</span></div>
+    <div class="plane p2"><i></i><span>✈️</span></div>
   </div>
 
-  <div class="app-container">
-    <div class="header">
-      <div class="brand-box">
-        <img
-          id="companyLogo"
-          class="company-logo"
-          src="logo-empresa.png"
-          alt="Logo de la empresa"
-          onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2288%22 height=%2288%22 viewBox=%220 0 88 88%22><rect width=%2288%22 height=%2288%22 rx=%2224%22 fill=%22%23071b33%22/><text x=%2250%25%22 y=%2254%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2240%22>✈️</text></svg>'"
-        >
-        <span class="badge">Evaluación de Viaje</span>
-      </div>
-      <h1>¿Cómo fue tu experiencia?</h1>
-      <p>Califica la atención de tu asesor y el servicio operativo en menos de un minuto.</p>
-    </div>
+  <main class="app">
 
-    <form id="surveyForm">
-      <div class="card">
-        <div class="field">
-          <label class="q-label">Tu nombre o código de reserva</label>
-          <input type="text" name="cliente" required placeholder="Ej. Carlos Pérez / #4821">
+    <!-- HERO -->
+    <header class="hero" id="hero">
+      <div class="brand">
+        <img class="logo" src="logo-empresa.png" alt="Logo de la empresa"
+          onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2262%22 height=%2262%22 viewBox=%220 0 62 62%22><text x=%2250%25%22 y=%2255%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2232%22>✈️</text></svg>'">
+        <div>
+          <div class="eyebrow">Evaluación de viaje</div>
+          <h1>¿Cómo fue tu experiencia?</h1>
         </div>
       </div>
+      <p>Tu opinión nos ayuda a hacer cada viaje mejor. Son solo 4 pasos rápidos.</p>
 
-      <div class="card">
-        <div class="section-title">
-          <span class="section-icon">🧳</span>
-          <span>Atención del Asesor</span>
-        </div>
+      <div class="stepper" id="stepper" role="progressbar" aria-valuemin="1" aria-valuemax="4" aria-valuenow="1" aria-label="Progreso de la encuesta"></div>
+      <div class="step-name"><span id="stepName">Tu reserva</span><span id="stepCount">Paso 1 de 4</span></div>
+    </header>
 
-        <div class="field">
-          <label class="q-label">Nombre del asesor</label>
-          <input type="text" name="asesor" required placeholder="¿Quién te atendió?">
-        </div>
+    <!-- FORMULARIO -->
+    <section class="panel" id="panel">
+      <form id="form" novalidate autocomplete="off">
+        <div class="hp" aria-hidden="true"><label>No llenar <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
 
-        <div class="field">
-          <label class="q-label">Rapidez, trato y claridad en la información</label>
-          <div class="rating-group">
-            <label class="rating-option">
-              <input type="radio" name="puntaje_asesor" value="1 - Muy malo" required>
-              <span class="rating-btn"><span class="emoji">😡</span><span class="num">1</span></span>
-            </label>
-            <label class="rating-option">
-              <input type="radio" name="puntaje_asesor" value="2 - Malo">
-              <span class="rating-btn"><span class="emoji">😕</span><span class="num">2</span></span>
-            </label>
-            <label class="rating-option">
-              <input type="radio" name="puntaje_asesor" value="3 - Regular">
-              <span class="rating-btn"><span class="emoji">😐</span><span class="num">3</span></span>
-            </label>
-            <label class="rating-option">
-              <input type="radio" name="puntaje_asesor" value="4 - Muy bueno">
-              <span class="rating-btn"><span class="emoji">😊</span><span class="num">4</span></span>
-            </label>
-            <label class="rating-option">
-              <input type="radio" name="puntaje_asesor" value="5 - Excelente">
-              <span class="rating-btn"><span class="emoji">🤩</span><span class="num">5</span></span>
-            </label>
+        <!-- PASO 1 -->
+        <div class="step active" data-name="Tu reserva">
+          <div class="step-title">
+            <div class="step-ico" aria-hidden="true">🎫</div>
+            <h2>Tu reserva<small>Cuéntanos quién eres y quién te atendió</small></h2>
           </div>
-          <div class="rating-hints">
-            <span>Muy malo</span>
-            <span>Excelente</span>
-          </div>
-        </div>
 
-        <div class="field">
-          <label class="q-label">¿Recibiste tus documentos o vouchers a tiempo?</label>
-          <div class="pill-group">
-            <label class="pill-option">
-              <input type="radio" name="vouchers" value="Sí" required>
-              <span class="pill-btn">Sí</span>
-            </label>
-            <label class="pill-option">
-              <input type="radio" name="vouchers" value="Con retraso">
-              <span class="pill-btn">Con retraso</span>
-            </label>
-            <label class="pill-option">
-              <input type="radio" name="vouchers" value="No">
-              <span class="pill-btn">No</span>
-            </label>
+          <div class="field">
+            <label class="q" for="cliente">Tu nombre o código de reserva <span class="req">*</span></label>
+            <input type="text" id="cliente" name="cliente" required maxlength="80" placeholder="Ej. Carlos Pérez / #4821" autocomplete="name">
+          </div>
+
+          <div class="field">
+            <label class="q" for="asesor">¿Qué asesor te atendió? <span class="req">*</span></label>
+            <select id="asesor" name="asesor" required>
+              <option value="" disabled selected>Selecciona un asesor...</option>
+              <option>Adriana Ferrer</option>
+              <option>Anais Perez</option>
+              <option>Andreina Solano</option>
+              <option>Camila Quijada</option>
+              <option>Dairianny Valdivieso</option>
+              <option>Daniela Freire</option>
+              <option>Dorianny Lugo</option>
+              <option>Georgina Marcano</option>
+              <option>Macgleidys Brito</option>
+              <option>Milagros Lopez</option>
+              <option>Ofelia Díaz</option>
+              <option>Wilvelys Gil</option>
+              <option>Yovanna Rivas</option>
+              <option>Otro / No recuerdo</option>
+            </select>
           </div>
         </div>
+
+        <!-- PASO 2 -->
+        <div class="step" data-name="Tu asesor">
+          <div class="step-title">
+            <div class="step-ico" aria-hidden="true">🧳</div>
+            <h2>Atención del asesor<small>¿Cómo te sentiste acompañado?</small></h2>
+          </div>
+          <div class="field" data-rating="puntaje_asesor" data-label="Rapidez, trato y claridad en la información"></div>
+          <div class="field">
+            <fieldset>
+              <legend class="q">¿Recibiste tus documentos o vouchers a tiempo? <span class="req">*</span></legend>
+              <div class="pills">
+                <label class="pill"><input type="radio" name="vouchers" value="Sí" required><span class="p-btn">Sí</span></label>
+                <label class="pill"><input type="radio" name="vouchers" value="Con retraso"><span class="p-btn">Con retraso</span></label>
+                <label class="pill"><input type="radio" name="vouchers" value="No"><span class="p-btn">No</span></label>
+              </div>
+            </fieldset>
+          </div>
+        </div>
+
+        <!-- PASO 3 -->
+        <div class="step" data-name="Operativo">
+          <div class="step-title">
+            <div class="step-ico" aria-hidden="true">🚐</div>
+            <h2>Servicio operativo<small>Traslados, recepción y logística</small></h2>
+          </div>
+          <div class="field" data-rating="puntaje_operativo" data-label="Puntualidad en traslados, recepción y logística"></div>
+        </div>
+
+        <!-- PASO 4 -->
+        <div class="step" data-name="Hotel">
+          <div class="step-title">
+            <div class="step-ico" aria-hidden="true">🏨</div>
+            <h2>Hotel y alojamiento<small>Último paso, ¡ya casi terminas!</small></h2>
+          </div>
+          <div class="field">
+            <label class="q" for="hotel">Nombre del hotel <span class="opt">(opcional)</span></label>
+            <input type="text" id="hotel" name="hotel_nombre" maxlength="80" placeholder="Ej. Sunsol Ecoland, Hesperia...">
+          </div>
+          <div class="field" data-rating="puntaje_hotel" data-label="Calidad, habitaciones y cumplimiento del hotel"></div>
+          <div class="field">
+            <label class="q" for="comentarios" id="comLabel">Comentarios o sugerencias <span class="opt">(opcional)</span></label>
+            <textarea id="comentarios" name="comentarios" maxlength="500" placeholder="Cuéntanos algún detalle de tu viaje..."></textarea>
+            <div class="count"><span id="cc">0</span>/500</div>
+          </div>
+        </div>
+
+        <div class="err" id="err" role="alert">Por favor completa los campos marcados.</div>
+
+        <div class="nav">
+          <button type="button" class="btn ghost" id="back" hidden>← Atrás</button>
+          <button type="submit" class="btn primary" id="next"><span class="spin" aria-hidden="true"></span><span id="nextText">Continuar →</span></button>
+        </div>
+        <p class="privacy">🔒 Tus respuestas solo se usan para mejorar nuestro servicio.</p>
+      </form>
+    </section>
+
+    <!-- ÉXITO -->
+    <section class="panel done-screen" id="done" aria-live="polite">
+      <svg class="check" id="checkSvg" viewBox="0 0 92 92" aria-hidden="true">
+        <circle cx="46" cy="46" r="41"/><path d="M28 47l12 12 24-26"/>
+      </svg>
+      <h2 id="doneTitle">¡Gracias por responder!</h2>
+      <p id="doneMsg">Tu evaluación ya fue enviada. Nos ayuda a seguir mejorando en cada viaje.</p>
+
+      <div class="cta" id="ctaSupport">
+        <p>Lamentamos que algo no saliera como esperabas. Escríbenos directo y lo resolvemos de inmediato:</p>
+        <a id="waBtn" class="wa" href="#" target="_blank" rel="noopener">💬 Hablar con soporte por WhatsApp</a>
       </div>
-
-      <div class="card">
-        <div class="section-title">
-          <span class="section-icon">🛫</span>
-          <span>Servicio Operativo</span>
-        </div>
-
-        <div class="field">
-          <label class="q-label">Puntualidad en traslados y recepción</label>
-          <div class="rating-group">
-            <label class="rating-option">
-              <input type="radio" name="puntaje_traslados" value="1 - Muy malo" required>
-              <span class="rating-btn"><span class="emoji">😡</span><span class="num">1</span></span>
-            </label>
-            <label class="rating-option">
-              <input type="radio" name="puntaje_traslados" value="2 - Malo">
-              <span class="rating-btn"><span class="emoji">😕</span><span class="num">2</span></span>
-            </label>
-            <label class="rating-option">
-              <input type="radio" name="puntaje_traslados" value="3 - Regular">
-              <span class="rating-btn"><span class="emoji">😐</span><span class="num">3</span></span>
-            </label>
-            <label class="rating-option">
-              <input type="radio" name="puntaje_traslados" value="4 - Muy bueno">
-              <span class="rating-btn"><span class="emoji">😊</span><span class="num">4</span></span>
-            </label>
-            <label class="rating-option">
-              <input type="radio" name="puntaje_traslados" value="5 - Excelente">
-              <span class="rating-btn"><span class="emoji">🤩</span><span class="num">5</span></span>
-            </label>
-          </div>
-          <div class="rating-hints">
-            <span>Muy malo</span>
-            <span>Excelente</span>
-          </div>
-        </div>
-
-        <div class="field">
-          <label class="q-label">Cumplimiento de hotel, vuelos o tours</label>
-          <div class="rating-group">
-            <label class="rating-option">
-              <input type="radio" name="puntaje_servicios" value="1 - Muy malo" required>
-              <span class="rating-btn"><span class="emoji">😡</span><span class="num">1</span></span>
-            </label>
-            <label class="rating-option">
-              <input type="radio" name="puntaje_servicios" value="2 - Malo">
-              <span class="rating-btn"><span class="emoji">😕</span><span class="num">2</span></span>
-            </label>
-            <label class="rating-option">
-              <input type="radio" name="puntaje_servicios" value="3 - Regular">
-              <span class="rating-btn"><span class="emoji">😐</span><span class="num">3</span></span>
-            </label>
-            <label class="rating-option">
-              <input type="radio" name="puntaje_servicios" value="4 - Muy bueno">
-              <span class="rating-btn"><span class="emoji">😊</span><span class="num">4</span></span>
-            </label>
-            <label class="rating-option">
-              <input type="radio" name="puntaje_servicios" value="5 - Excelente">
-              <span class="rating-btn"><span class="emoji">🤩</span><span class="num">5</span></span>
-            </label>
-          </div>
-          <div class="rating-hints">
-            <span>Muy malo</span>
-            <span>Excelente</span>
-          </div>
-        </div>
+      <div class="cta" id="ctaReview">
+        <p>¡Nos alegra mucho! ¿Nos regalas 20 segundos para dejar tu reseña pública?</p>
+        <a id="rvBtn" class="rv" href="#" target="_blank" rel="noopener">⭐ Dejar reseña en Google</a>
       </div>
-
-      <div class="card">
-        <div class="field">
-          <label class="q-label">Comentarios o sugerencias (Opcional)</label>
-          <textarea name="comentarios" rows="3" placeholder="Cuéntanos algún detalle de tu viaje..."></textarea>
-        </div>
-      </div>
-
-      <button type="submit" class="submit-btn" id="submitBtn">Enviar respuesta</button>
-    </form>
-
-    <div class="card success-screen" id="successScreen">
-      <div class="success-icon">✓</div>
-      <h2>¡Gracias por responder!</h2>
-      <p>Tu evaluación ya fue enviada. Nos ayuda a seguir mejorando en cada viaje.</p>
-    </div>
-  </div>
+    </section>
+  </main>
 
   <script>
-    // Pega aquí la URL de tu aplicación web de Google Apps Script (termina en /exec)
+    /* ================= CONFIGURACIÓN ================= */
+    // 1. URL de tu Web App de Google Apps Script (termina en /exec)
     const GOOGLE_SCRIPT_URL = "PEGA_AQUI_TU_URL_DE_APPS_SCRIPT";
+    // 2. WhatsApp de soporte: código de país + número, sin + ni espacios
+    const SOPORTE_WHATSAPP = "584120000000";
+    // 3. (Opcional) Enlace de reseñas de Google. Vacío = no se muestra el botón.
+    const RESENA_URL = "";
+    /* ================================================= */
 
-    const form = document.getElementById('surveyForm');
-    const submitBtn = document.getElementById('submitBtn');
-    const successScreen = document.getElementById('successScreen');
+    const ESCALA = [
+      { v: "1 - Muy malo",  e: "😡", n: 1, t: "Muy malo" },
+      { v: "2 - Malo",      e: "😕", n: 2, t: "Malo" },
+      { v: "3 - Regular",   e: "😐", n: 3, t: "Regular" },
+      { v: "4 - Muy bueno", e: "😊", n: 4, t: "Muy bueno" },
+      { v: "5 - Excelente", e: "🤩", n: 5, t: "Excelente" }
+    ];
 
-    form.addEventListener('submit', async (e) => {
+    const $ = id => document.getElementById(id);
+    const form = $('form'), steps = [...document.querySelectorAll('.step')];
+    const nextBtn = $('next'), nextText = $('nextText'), backBtn = $('back'), err = $('err');
+    const stepper = $('stepper');
+    let cur = 0;
+
+    /* ---- Construir stepper ---- */
+    steps.forEach((_, i) => {
+      const d = document.createElement('div'); d.className = 'dot'; d.textContent = i + 1; stepper.appendChild(d);
+      if (i < steps.length - 1) { const b = document.createElement('div'); b.className = 'bar'; b.innerHTML = '<b></b>'; stepper.appendChild(b); }
+    });
+    const dots = [...stepper.querySelectorAll('.dot')], bars = [...stepper.querySelectorAll('.bar b')];
+
+    /* ---- Construir calificaciones ---- */
+    document.querySelectorAll('[data-rating]').forEach(box => {
+      const name = box.dataset.rating;
+      const fs = document.createElement('fieldset');
+      fs.innerHTML = `<legend class="q">${box.dataset.label} <span class="req">*</span></legend><div class="rating"></div><div class="r-text hint" id="rt_${name}" aria-live="polite">Toca una carita: 1 = Muy malo · 5 = Excelente</div>`;
+      const g = fs.querySelector('.rating');
+      ESCALA.forEach((o, i) => {
+        const l = document.createElement('label');
+        l.className = 'opt-box'; l.dataset.n = o.n;
+        l.innerHTML = `<input type="radio" name="${name}" value="${o.v}" ${i === 0 ? 'required' : ''} aria-label="${o.n} de 5, ${o.t}"><span class="r-btn"><span class="e" aria-hidden="true">${o.e}</span><span class="n">${o.n}</span></span>`;
+        g.appendChild(l);
+      });
+      box.appendChild(fs);
+    });
+
+    /* ---- Navegación de pasos ---- */
+    function show(i, back) {
+      steps.forEach((s, k) => { s.classList.toggle('active', k === i); s.classList.toggle('back', !!back && k === i); });
+      cur = i;
+      dots.forEach((d, k) => { d.classList.toggle('active', k === i); d.classList.toggle('done', k < i); d.textContent = k < i ? '✓' : k + 1; });
+      bars.forEach((b, k) => b.style.width = (k < i ? '100%' : '0'));
+      $('stepName').textContent = steps[i].dataset.name;
+      $('stepCount').textContent = `Paso ${i + 1} de ${steps.length}`;
+      stepper.setAttribute('aria-valuenow', i + 1);
+      backBtn.hidden = i === 0;
+      const last = i === steps.length - 1;
+      nextText.textContent = last ? 'Enviar respuesta ✈️' : 'Continuar →';
+      nextBtn.classList.toggle('send', last);
+      err.style.display = 'none';
+      $('hero').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function validar(i) {
+      const step = steps[i], vistos = new Set();
+      step.querySelectorAll('.field').forEach(f => f.classList.remove('invalid'));
+      err.style.display = 'none';
+      let primero = null;
+      step.querySelectorAll('[required]').forEach(el => {
+        let ok;
+        if (el.type === 'radio') {
+          if (vistos.has(el.name)) return; vistos.add(el.name);
+          ok = !!form.querySelector(`input[name="${el.name}"]:checked`);
+        } else ok = el.value.trim() !== '';
+        if (!ok) {
+          const f = el.closest('.field'); void f.offsetWidth; f.classList.add('invalid');
+          if (!primero) primero = f;
+        }
+      });
+      if (primero) {
+        err.style.display = 'block';
+        primero.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return false;
+      }
+      return true;
+    }
+
+    backBtn.addEventListener('click', () => { if (cur > 0) show(cur - 1, true); });
+
+    /* ---- Eventos ---- */
+    form.addEventListener('input', e => { const f = e.target.closest('.field'); if (f) f.classList.remove('invalid'); err.style.display = 'none'; });
+
+    const notaBaja = () => ['puntaje_asesor', 'puntaje_operativo', 'puntaje_hotel'].some(n => {
+      const c = form.querySelector(`input[name="${n}"]:checked`); return c && num(c.value) <= 2;
+    });
+
+    form.addEventListener('change', e => {
+      const t = e.target;
+      if (t.type === 'radio' && t.name.startsWith('puntaje_')) {
+        const o = ESCALA.find(x => x.v === t.value), rt = $('rt_' + t.name);
+        rt.className = 'r-text' + (o.n <= 2 ? ' low' : '');
+        rt.textContent = `${o.e} ${o.t}`;
+      }
+      const bad = notaBaja();
+      $('comLabel').innerHTML = bad ? '¿Qué pasó? Cuéntanos para ayudarte <span class="opt">(opcional)</span>' : 'Comentarios o sugerencias <span class="opt">(opcional)</span>';
+      $('comentarios').placeholder = bad ? 'Cuéntanos qué salió mal para poder resolverlo...' : 'Cuéntanos algún detalle de tu viaje...';
+    });
+
+    $('comentarios').addEventListener('input', e => $('cc').textContent = e.target.value.length);
+
+    /* ---- Utilidades ---- */
+    function num(v) { const m = (v || '').match(/^(\d+)/); return m ? Number(m[1]) : ''; }
+    const mala = p => [p.num_asesor, p.num_operativo, p.num_hotel].some(n => n <= 2) || p.vouchers === 'No' || p.vouchers === 'Con retraso';
+    const buena = p => [p.num_asesor, p.num_operativo, p.num_hotel].every(n => n >= 4) && p.vouchers === 'Sí';
+
+    function confeti() {
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const em = ['🎉', '✈️', '⭐', '🌴', '🧳', '☀️'];
+      for (let i = 0; i < 28; i++) {
+        const s = document.createElement('span');
+        s.className = 'confetti'; s.textContent = em[i % em.length];
+        s.style.left = Math.random() * 100 + 'vw';
+        s.style.fontSize = 16 + Math.random() * 16 + 'px';
+        s.style.animationDuration = 2.2 + Math.random() * 2 + 's';
+        s.style.animationDelay = Math.random() * .7 + 's';
+        document.body.appendChild(s); setTimeout(() => s.remove(), 5500);
+      }
+    }
+
+    /* ---- Envío / siguiente ---- */
+    form.addEventListener('submit', async e => {
       e.preventDefault();
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Enviando...';
+      if (nextBtn.disabled) return;
+      if (!validar(cur)) return;
+      if (cur < steps.length - 1) { show(cur + 1); return; }
 
-      const data = Object.fromEntries(new FormData(form).entries());
+      // Todos los pasos de nuevo, por si saltaron algo
+      for (let i = 0; i < steps.length - 1; i++) if (!validar(i)) { show(i, true); validar(i); return; }
+
+      if (form.elements['website'].value) { terminar(null); return; } // honeypot
+
+      nextBtn.disabled = true; nextBtn.classList.add('loading'); nextText.textContent = 'Enviando...';
+
+      const raw = Object.fromEntries(new FormData(form).entries());
+      const p = {
+        fecha_envio: new Date().toISOString(),
+        cliente: raw.cliente.trim(),
+        asesor: raw.asesor,
+        puntaje_asesor: raw.puntaje_asesor, num_asesor: num(raw.puntaje_asesor),
+        vouchers: raw.vouchers,
+        puntaje_operativo: raw.puntaje_operativo, num_operativo: num(raw.puntaje_operativo),
+        hotel_nombre: (raw.hotel_nombre || '').trim() || 'No especificado',
+        puntaje_hotel: raw.puntaje_hotel, num_hotel: num(raw.puntaje_hotel),
+        comentarios: (raw.comentarios || '').trim()
+      };
 
       try {
-        await fetch(GOOGLE_SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
-        });
-
-        form.style.display = 'none';
-        successScreen.style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } catch (err) {
-        alert('Error de red al enviar. Intenta nuevamente.');
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Enviar respuesta';
+        if (GOOGLE_SCRIPT_URL && !GOOGLE_SCRIPT_URL.includes('PEGA_AQUI')) {
+          const ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), 15000);
+          await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST', mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Apps Script lo recibe en e.postData.contents
+            body: JSON.stringify(p), signal: ctrl.signal
+          });
+          clearTimeout(timer);
+        } else {
+          console.warn('⚠️ GOOGLE_SCRIPT_URL no está configurada: la respuesta NO se guardó.', p);
+        }
+        terminar(p);
+      } catch (ex) {
+        console.error(ex);
+        err.textContent = 'No pudimos enviar tu respuesta. Revisa tu conexión e inténtalo de nuevo.';
+        err.style.display = 'block';
+        nextBtn.disabled = false; nextBtn.classList.remove('loading'); nextText.textContent = 'Enviar respuesta ✈️';
       }
     });
+
+    function terminar(p) {
+      const svg = $('checkSvg');
+      if (p && mala(p)) {
+        svg.style.setProperty('--c', '#d97706');
+        $('doneTitle').textContent = 'Queremos ayudarte de inmediato';
+        $('doneMsg').textContent = 'Recibimos tu evaluación y notamos que hubo un inconveniente en tu experiencia.';
+        const msg =
+          `Hola, acabo de responder la encuesta de viaje y tuve un inconveniente:\n` +
+          `• Cliente/Reserva: ${p.cliente}\n• Asesor: ${p.asesor} (${p.puntaje_asesor})\n` +
+          `• Vouchers a tiempo: ${p.vouchers}\n• Operativo/Traslados: ${p.puntaje_operativo}\n` +
+          `• Hotel (${p.hotel_nombre}): ${p.puntaje_hotel}\n• Comentario: ${p.comentarios || 'Sin comentarios adicionales'}`;
+        $('waBtn').href = `https://wa.me/${SOPORTE_WHATSAPP}?text=${encodeURIComponent(msg)}`;
+        $('ctaSupport').style.display = 'block';
+      } else if (p && buena(p)) {
+        $('doneTitle').textContent = '¡Gracias, nos alegra mucho! 🎉';
+        $('doneMsg').textContent = 'Qué bueno que disfrutaste tu viaje. Tu opinión motiva a todo nuestro equipo.';
+        if (RESENA_URL) { $('rvBtn').href = RESENA_URL; $('ctaReview').style.display = 'block'; }
+        confeti();
+      }
+      $('panel').style.display = 'none';
+      $('hero').style.display = 'none';
+      $('done').classList.add('show');
+      scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    show(0);
   </script>
 </body>
 </html>
